@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIKROPLASTIK — Ancaman Tak Terlihat</title>
+
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- Google Fonts: Cinematic + Editorial -->
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   CSS VARIABLES & RESET
+   ============================================================ */
+:root {
+  --bg-deep: #02050a;
+  --bg-mid: #060d18;
+  --bg-light: #0a1628;
+  --ocean-blue: #0a3d62;
+  --teal: #00b4d8;
+  --teal-dim: #0077a8;
+  --accent: #00ffcc;
+  --accent-glow: rgba(0,255,204,0.15);
+  --warn-red: #ff4d6d;
+  --text-primary: #e8f4f8;
+  --text-dim: #7a9ab5;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+#cursor {
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  transition: transform 0.15s ease;
+  transform: translate(-50%, -50%);
+}
+#cursor-ring {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(0,255,204,0.4);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: all 0.25s ease;
+}
+body:hover #cursor { opacity: 1; }
+
+/* ============================================================
+   SCROLL PROGRESS BAR
+   ============================================================ */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--teal), var(--accent));
+  z-index: 9000;
+  width: 0%;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+/* ============================================================
+   LOADING SCREEN
+   ============================================================ */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-deep);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+#loader-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 6vw, 72px);
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-shadow: 0 0 40px var(--accent);
+}
+#loader-bar-wrap {
+  width: 280px;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+#loader-bar {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.2s;
+  box-shadow: 0 0 6px var(--accent);
+}
+#loader-pct {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.3em;
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 800;
+  padding: 20px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  mix-blend-mode: normal;
+}
+nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(2,5,10,0.9) 0%, transparent 100%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  position: relative;
+  z-index: 1;
+}
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+  position: relative;
+  z-index: 1;
+}
+.nav-links a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--accent); }
+
+/* ============================================================
+   HERO — CANVAS + IMAGE SEQUENCE
+   ============================================================ */
+#hero {
+  position: relative;
+  height: 400vh;
+}
+#hero-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Dark vignette overlay */
+#hero-sticky::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 70% 50%, transparent 30%, rgba(2,5,10,0.7) 100%),
+    linear-gradient(270deg, transparent 40%, rgba(2,5,10,0.85) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+/* Noise overlay */
+#hero-sticky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--noise);
+  opacity: 0.06;
+  z-index: 3;
+  pointer-events: none;
+}
+.hero-content {
+  position: absolute;
+  right: 6vw;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  text-align: right;
+  max-width: 520px;
+}
+.hero-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 9vw, 120px);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-shadow: 0 0 60px rgba(0,180,216,0.3);
+  margin-bottom: 24px;
+}
+.hero-title span {
+  color: var(--accent);
+  display: block;
+}
+.hero-sub {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-dim);
+  max-width: 380px;
+  margin-left: auto;
+  margin-bottom: 36px;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: none;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: translateX(-101%);
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.btn-primary:hover {
+  color: var(--bg-deep);
+  box-shadow: 0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow);
+  transform: scale(1.04);
+}
+.btn-primary:hover::before { transform: translateX(0); }
+.btn-primary span { position: relative; z-index: 1; }
+
+/* Scroll indicator */
+.scroll-hint {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  animation: float 2s ease-in-out infinite;
+}
+.scroll-hint::after {
+  content: '';
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(180deg, var(--teal), transparent);
+}
+@keyframes float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* ============================================================
+   3D PARTICLE CANVAS
+   ============================================================ */
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.35;
+}
+
+/* ============================================================
+   SECTION BASE
+   ============================================================ */
+section {
+  position: relative;
+  z-index: 10;
+}
+.section-pad { padding: 120px 6vw; }
+.label-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   INTRO SPLIT — EDUKASI
+   ============================================================ */
+#edukasi {
+  background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+  padding: 140px 6vw;
+}
+.edu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 80px;
+  align-items: start;
+  max-width: 1320px;
+}
+.edu-left { padding-top: 24px; }
+.edu-sticky-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  opacity: 0.7;
+}
+.edu-number {
+  font-family: var(--font-display);
+  font-size: 200px;
+  line-height: 1;
+  color: rgba(0,180,216,0.04);
+  pointer-events: none;
+  user-select: none;
+  position: absolute;
+  left: 0;
+  top: -40px;
+}
+.edu-cards { display: flex; flex-direction: column; gap: 1px; }
+.edu-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-left: 2px solid var(--teal-dim);
+  padding: 36px 40px;
+  transition: all 0.4s ease;
+  opacity: 0;
+  transform: translateX(60px);
+}
+.edu-card:hover {
+  background: rgba(0,180,216,0.04);
+  border-left-color: var(--accent);
+  transform: translateX(8px) !important;
+}
+.card-icon {
+  width: 40px; height: 40px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+.edu-card h3 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.edu-card p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+.edu-right {
+  text-align: right;
+}
+.big-reveal {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 6vw, 80px);
+  line-height: 1.0;
+  letter-spacing: 0.02em;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+.word-wrap { overflow: hidden; display: inline-block; margin-right: 0.25em; }
+.word-inner { display: inline-block; transform: translateY(110%); }
+.edu-body-text {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  text-align: right;
+}
+.stat-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 48px;
+  margin-top: 48px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.stat-item { text-align: right; }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 48px;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   PARALLAX SECTION — OCEAN
+   ============================================================ */
+#parallax-section {
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.parallax-bg {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 60%, rgba(0,70,120,0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 80% at 80% 30%, rgba(0,180,216,0.1) 0%, transparent 50%),
+    var(--bg-mid);
+  will-change: transform;
+}
+.parallax-grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,180,216,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,180,216,0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+  will-change: transform;
+}
+.parallax-content {
+  position: relative;
+  z-index: 10;
+  padding: 0 6vw;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 80px;
+}
+.parallax-visual {
+  position: relative;
+}
+.circle-stat {
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,180,216,0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: auto;
+}
+.circle-stat::before {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,255,204,0.1);
+  animation: spin-slow 12s linear infinite;
+}
+.circle-stat::after {
+  content: '';
+  position: absolute;
+  inset: -32px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0,180,216,0.06);
+  animation: spin-slow 20s linear infinite reverse;
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.circle-num {
+  font-family: var(--font-display);
+  font-size: 72px;
+  color: var(--accent);
+  text-shadow: 0 0 30px var(--accent-glow);
+  letter-spacing: -0.02em;
+}
+.circle-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0 24px;
+  margin-top: 8px;
+}
+.parallax-text { text-align: right; }
+.parallax-text h2 {
+  font-family: var(--font-display);
+  font-size: clamp(42px, 5.5vw, 72px);
+  line-height: 1.0;
+  margin-bottom: 28px;
+  color: var(--text-primary);
+}
+.parallax-text p {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 32px;
+}
+.tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid rgba(255,77,109,0.3);
+  color: var(--warn-red);
+  opacity: 0.8;
+}
+
+/* ============================================================
+   BRANTAS CASE STUDY — ZIG-ZAG LAYOUT
+   ============================================================ */
+#brantas {
+  background: var(--bg-mid);
+  padding: 120px 6vw;
+}
+.brantas-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  margin-bottom: 80px;
+  align-items: end;
+}
+.brantas-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.0;
+}
+.brantas-header h2 em {
+  font-style: normal;
+  color: var(--warn-red);
+}
+.brantas-header p {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--text-dim);
+  text-align: right;
+}
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(255,255,255,0.04);
+}
+.fact-card {
+  background: var(--bg-mid);
+  padding: 48px 36px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(80px);
+}
+.fact-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--teal), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s ease;
+}
+.fact-card:hover::before { transform: scaleX(1); }
+.fact-card:nth-child(2) { transform: translateX(80px) translateY(20px); }
+.fact-card:nth-child(3) { transform: translateX(80px) translateY(-20px); }
+.fact-icon {
+  font-size: 28px;
+  margin-bottom: 20px;
+  display: block;
+}
+.fact-card h4 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+.fact-card p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+
+/* ============================================================
+   SDG BADGE SECTION
+   ============================================================ */
+#sdg-section {
+  padding: 100px 6vw;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 80px;
+  background: linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-light) 100%);
+}
+.sdg-badge {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.sdg-icon {
+  width: 120px; height: 120px;
+  background: linear-gradient(135deg, #3F7E44, #5CB85C);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 40px rgba(63,126,68,0.3);
+  position: relative;
+  overflow: hidden;
+}
+.sdg-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--noise);
+  opacity: 0.15;
+}
+.sdg-num {
+  font-family: var(--font-display);
+  font-size: 52px;
+  color: #fff;
+  line-height: 1;
+}
+.sdg-name {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+  padding: 0 8px;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+.sdg-text { }
+.sdg-text h3 {
+  font-family: var(--font-display);
+  font-size: 36px;
+  letter-spacing: 0.03em;
+  margin-bottom: 16px;
+  color: #5CB85C;
+}
+.sdg-text p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+.sdg-right { text-align: right; }
+.sdg-right h2 {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 4.5vw, 60px);
+  line-height: 1.0;
+  margin-bottom: 24px;
+}
+.sdg-right p {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--text-dim);
+}
+
+/* ============================================================
+   QUIZ SECTION
+   ============================================================ */
+#quiz {
+  background: var(--bg-deep);
+  padding: 120px 6vw;
+}
+.quiz-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.quiz-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+.quiz-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 5vw, 72px);
+  letter-spacing: 0.03em;
+  margin-bottom: 16px;
+}
+.quiz-header p {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  letter-spacing: 0.15em;
+}
+.quiz-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.quiz-progress-bar {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+}
+.quiz-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 20%;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 6px var(--accent);
+}
+.quiz-pct {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+}
+.quiz-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.quiz-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: linear-gradient(180deg, var(--teal), var(--accent));
+}
+.q-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--teal);
+  letter-spacing: 0.3em;
+  margin-bottom: 16px;
+}
+.q-text {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.02em;
+  margin-bottom: 36px;
+  line-height: 1.3;
+}
+.options { display: flex; flex-direction: column; gap: 12px; }
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: none;
+  transition: all 0.3s cubic-bezier(0.23,1,0.32,1);
+  text-align: left;
+  width: 100%;
+}
+.opt:hover {
+  border-color: rgba(0,180,216,0.4);
+  background: rgba(0,180,216,0.04);
+  transform: translateX(8px);
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+.opt.correct {
+  border-color: var(--accent);
+  background: rgba(0,255,204,0.06);
+  box-shadow: inset 3px 0 0 var(--accent), 0 0 12px rgba(0,255,204,0.1);
+}
+.opt.wrong {
+  border-color: var(--warn-red);
+  background: rgba(255,77,109,0.06);
+  box-shadow: inset 3px 0 0 var(--warn-red);
+}
+.opt.disabled { pointer-events: none; opacity: 0.5; }
+.opt.correct.disabled, .opt.wrong.disabled { opacity: 1; }
+.opt-letter {
+  width: 24px; height: 24px;
+  border: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.feedback-msg {
+  margin-top: 20px;
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  display: none;
+}
+.feedback-msg.correct { color: var(--accent); border-left: 2px solid var(--accent); }
+.feedback-msg.wrong { color: var(--warn-red); border-left: 2px solid var(--warn-red); }
+.quiz-nav {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+}
+.btn-next {
+  padding: 12px 28px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: none;
+  transition: all 0.3s;
+  display: none;
+}
+.btn-next.show {
+  display: block;
+  color: var(--text-primary);
+  border-color: rgba(255,255,255,0.2);
+}
+.btn-next:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+/* Quiz Result */
+#quiz-result {
+  display: none;
+  text-align: center;
+  padding: 48px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.result-score {
+  font-family: var(--font-display);
+  font-size: 96px;
+  color: var(--accent);
+  text-shadow: 0 0 40px var(--accent-glow);
+  letter-spacing: -0.02em;
+}
+.result-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.result-msg {
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.8;
+  max-width: 400px;
+  margin: 0 auto 32px;
+}
+.btn-retry {
+  padding: 14px 32px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: none;
+  transition: all 0.3s;
+}
+.btn-retry:hover {
+  background: var(--accent);
+  color: var(--bg-deep);
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+
+/* ============================================================
+   CALL TO ACTION
+   ============================================================ */
+#cta {
+  padding: 160px 6vw;
+  background: linear-gradient(180deg, var(--bg-deep) 0%, var(--ocean-blue) 50%, var(--bg-deep) 100%);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+#cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--noise);
+  opacity: 0.05;
+}
+.cta-inner { position: relative; z-index: 2; }
+.cta-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 8vw, 110px);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  margin-bottom: 40px;
+  color: #fff;
+}
+.cta-title em {
+  font-style: normal;
+  color: var(--accent);
+  display: block;
+}
+.cta-sub {
+  font-size: 15px;
+  color: var(--text-dim);
+  max-width: 500px;
+  margin: 0 auto 56px;
+  line-height: 1.8;
+}
+.cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.btn-secondary {
+  padding: 14px 32px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: none;
+  transition: all 0.3s;
+}
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
+  transform: scale(1.04);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  padding: 48px 6vw;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 0.3em;
+  color: var(--text-dim);
+}
+.footer-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 0.2em;
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .edu-grid, .parallax-content, .brantas-header,
+  .sdg-section, .fact-grid { grid-template-columns: 1fr; }
+  #sdg-section { grid-template-columns: 1fr; }
+  .hero-content { right: 5vw; max-width: 90vw; }
+  .hero-title { font-size: clamp(48px, 12vw, 80px); }
+  .stat-row { justify-content: flex-start; }
+  .edu-right { text-align: left; }
+  .edu-body-text { text-align: left; }
+  .parallax-text { text-align: left; }
+  .tag-list { justify-content: flex-start; }
+  .brantas-header h2, .brantas-header p { grid-column: 1; }
+  .nav-links { display: none; }
+  footer { flex-direction: column; gap: 16px; text-align: center; }
+  .footer-note { text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- SCROLL PROGRESS -->
+<div id="progress-bar"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div id="loader-title">MIKROPLASTIK</div>
+  <div id="loader-bar-wrap"><div id="loader-bar"></div></div>
+  <div id="loader-pct">MEMUAT SEQUENCE — 0%</div>
+</div>
+
+<!-- FLOATING PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- ============================================================
+     NAV
+     ============================================================ -->
+<nav>
+  <div class="nav-logo">MIKRO</div>
+  <ul class="nav-links">
+    <li><a href="#edukasi">Edukasi</a></li>
+    <li><a href="#brantas">Studi Kasus</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#cta">Aksi</a></li>
+  </ul>
+</nav>
+
+<!-- ============================================================
+     HERO — IMAGE SEQUENCE + CANVAS
+     ============================================================ -->
+<section id="hero">
+  <div id="hero-sticky">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <p class="hero-kicker">/ SDGs Goal 3 — Kesehatan & Kesejahteraan</p>
+      <h1 class="hero-title">
+        MIKRO<br>PLASTIK
+        <span>TAK TERLIHAT</span>
+      </h1>
+      <p class="hero-sub">Partikel plastik berukuran kurang dari 5mm yang mengancam lautan, rantai makanan, dan kesehatan manusia secara diam-diam.</p>
+      <a href="#edukasi" class="btn-primary">
+        <span>↓ PELAJARI LEBIH LANJUT</span>
+      </a>
+    </div>
+    <div class="scroll-hint">SCROLL</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     EDUKASI
+     ============================================================ -->
+<section id="edukasi" class="section-pad">
+  <div class="edu-grid">
+
+    <!-- KIRI: Cards -->
+    <div class="edu-left">
+      <p class="edu-sticky-label">/ 01 — Apa itu Mikroplastik?</p>
+      <div class="edu-cards">
+
+        <div class="edu-card" id="card-1">
+          <svg class="card-icon" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="18" stroke="#00b4d8" stroke-width="1"/>
+            <path d="M12 20 Q20 12 28 20 Q20 28 12 20Z" fill="rgba(0,180,216,0.2)" stroke="#00b4d8" stroke-width="1"/>
+          </svg>
+          <h3>DEFINISI</h3>
+          <p>Mikroplastik adalah partikel plastik berdiameter kurang dari 5 milimeter. Ada yang terbentuk langsung (primer) seperti microbeads kosmetik, ada yang berasal dari pecahan plastik besar (sekunder).</p>
+        </div>
+
+        <div class="edu-card" id="card-2">
+          <svg class="card-icon" viewBox="0 0 40 40" fill="none">
+            <path d="M5 35 L10 20 L20 28 L30 10 L35 25" stroke="#00ffcc" stroke-width="1.5" fill="none"/>
+            <circle cx="10" cy="20" r="2" fill="#00ffcc"/>
+            <circle cx="20" cy="28" r="2" fill="#00ffcc"/>
+            <circle cx="30" cy="10" r="2" fill="#00ffcc"/>
+          </svg>
+          <h3>ASAL USUL</h3>
+          <p>Berasal dari tekstil sintetis (microfiber), ban kendaraan, cat, kemasan plastik, dan produk perawatan diri. Masuk ke ekosistem melalui saluran air, hujan, dan angin.</p>
+        </div>
+
+        <div class="edu-card" id="card-3">
+          <svg class="card-icon" viewBox="0 0 40 40" fill="none">
+            <rect x="10" y="10" width="20" height="20" stroke="#ff4d6d" stroke-width="1" fill="none"/>
+            <line x1="10" y1="10" x2="30" y2="30" stroke="#ff4d6d" stroke-width="1"/>
+            <line x1="30" y1="10" x2="10" y2="30" stroke="#ff4d6d" stroke-width="1"/>
+          </svg>
+          <h3>BAHAYA TERSEMBUNYI</h3>
+          <p>Menyerap polutan kimia berbahaya di permukaan, tertelan oleh organisme laut, masuk ke rantai makanan, dan akhirnya dikonsumsi manusia bersama seafood, air minum, dan garam laut.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- KANAN: Reveal text -->
+    <div class="edu-right">
+      <h2 class="big-reveal" id="reveal-title">
+        <div class="word-wrap"><div class="word-inner">ANCAMAN</div></div>
+        <div class="word-wrap"><div class="word-inner">YANG</div></div><br>
+        <div class="word-wrap"><div class="word-inner">DIAM-DIAM</div></div>
+        <div class="word-wrap"><div class="word-inner">NYATA</div></div>
+      </h2>
+      <p class="edu-body-text">
+        Setiap minggu, rata-rata manusia mengonsumsi sekitar 5 gram plastik — setara dengan sebuah kartu kredit. Partikel-partikel ini ditemukan di darah, paru-paru, usus, bahkan plasenta bayi yang belum lahir.
+      </p>
+      <p class="edu-body-text">
+        Studi WHO menyebutkan mikroplastik ditemukan di lebih dari 90% merek air minum kemasan yang diuji di seluruh dunia. Ini bukan lagi masalah lingkungan semata — ini adalah krisis kesehatan publik.
+      </p>
+      <div class="stat-row">
+        <div class="stat-item">
+          <div class="stat-num" data-target="5">0</div>
+          <div class="stat-label">gram/minggu dikonsumsi</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" data-target="90">0</div>
+          <div class="stat-label">% air kemasan terkontaminasi</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" data-target="8">0</div>
+          <div class="stat-label">juta ton/tahun ke laut</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PARALLAX SECTION
+     ============================================================ -->
+<section id="parallax-section">
+  <div class="parallax-bg" id="parallax-bg"></div>
+  <div class="parallax-grid-lines" id="parallax-grid"></div>
+  <div class="parallax-content">
+    <div class="parallax-visual">
+      <div class="circle-stat">
+        <div class="circle-num">170</div>
+        <div class="circle-label">TRILIUN PARTIKEL DI LAUTAN BUMI</div>
+      </div>
+    </div>
+    <div class="parallax-text">
+      <p class="label-tag">/ 02 — Dampak Lautan</p>
+      <h2>LAUTAN<br>YANG<br>TERLUKA</h2>
+      <p>Mikroplastik kini ditemukan di semua lapisan laut — dari permukaan hingga palung terdalam. Ribuan spesies laut mengonsumsi partikel ini karena ukuran dan warnanya menyerupai plankton.</p>
+      <p>Ikan, kerang, udang, dan berbagai seafood yang kita konsumsi telah terkontaminasi. Ketika kita makan, kita turut menelan sisa-sisa peradaban plastik manusia.</p>
+      <div class="tag-list">
+        <span class="tag">KANKER</span>
+        <span class="tag">GANGGUAN HORMON</span>
+        <span class="tag">INFLAMASI</span>
+        <span class="tag">NEUROTOKSISITAS</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     BRANTAS CASE STUDY
+     ============================================================ -->
+<section id="brantas">
+  <div class="brantas-header">
+    <div>
+      <p class="label-tag">/ 03 — Studi Kasus</p>
+      <h2>SUNGAI <em>BRANTAS</em><br>DALAM KRISIS</h2>
+    </div>
+    <p>Sungai Brantas di Jawa Timur — sumber air bagi jutaan orang — telah menjadi salah satu sungai paling tercemar mikroplastik di Asia. Penelitian menemukan ratusan partikel per liter air sungai.</p>
+  </div>
+  <div class="fact-grid">
+    <div class="fact-card">
+      <span class="fact-icon">🔬</span>
+      <h4>DATA KONTAMINASI</h4>
+      <p>Studi tahun 2021 menemukan lebih dari 400 partikel mikroplastik per liter air Sungai Brantas — melampaui ambang batas aman international.</p>
+    </div>
+    <div class="fact-card">
+      <span class="fact-icon">🐠</span>
+      <h4>DAMPAK BIOTA</h4>
+      <p>Ikan di Brantas menunjukkan akumulasi mikroplastik di jaringan insang dan sistem pencernaan. Nelayan lokal melaporkan penurunan populasi ikan hingga 40%.</p>
+    </div>
+    <div class="fact-card">
+      <span class="fact-icon">👥</span>
+      <h4>ANCAMAN MANUSIA</h4>
+      <p>Warga di sekitar DAS Brantas yang mengandalkan air sungai berisiko terpapar mikroplastik melalui air minum, irigasi sawah, dan hasil tangkapan ikan.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SDG SECTION
+     ============================================================ -->
+<section id="sdg-section">
+  <div>
+    <div class="sdg-badge">
+      <div class="sdg-icon">
+        <div class="sdg-num">3</div>
+        <div class="sdg-name">Good Health & Well-Being</div>
+      </div>
+      <div class="sdg-text">
+        <h3>SDGs<br>GOAL 3</h3>
+        <p>Memastikan kehidupan yang sehat dan mendorong kesejahteraan bagi semua orang di semua usia — termasuk perlindungan dari kontaminan lingkungan.</p>
+      </div>
+    </div>
+  </div>
+  <div class="sdg-right">
+    <p class="label-tag">/ 04 — Relevansi SDGs</p>
+    <h2>KESEHATAN<br>ADALAH<br>HAK SEMUA</h2>
+    <p>Pencemaran mikroplastik secara langsung melanggar target SDG 3 — mengurangi penyakit akibat polusi air, udara, dan kontaminan kimia. Tindakan individu dan kebijakan kolektif adalah kunci.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     QUIZ
+     ============================================================ -->
+<section id="quiz">
+  <div class="quiz-wrap">
+    <div class="quiz-header">
+      <h2>UJI PEMAHAMANMU</h2>
+      <p>/ 05 pertanyaan — berapa yang kamu kuasai?</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="quiz-progress-wrap">
+      <div class="quiz-progress-bar">
+        <div class="quiz-progress-fill" id="q-progress"></div>
+      </div>
+      <div class="quiz-pct" id="q-pct">1 / 5</div>
+    </div>
+
+    <!-- Question Card -->
+    <div id="quiz-card">
+      <div class="quiz-card">
+        <div class="q-num" id="q-num">PERTANYAAN 01</div>
+        <div class="q-text" id="q-text"></div>
+        <div class="options" id="q-options"></div>
+        <div class="feedback-msg" id="q-feedback"></div>
+      </div>
+      <div class="quiz-nav">
+        <button class="btn-next" id="btn-next">LANJUT →</button>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="quiz-result">
+      <div class="result-score" id="result-score">0/5</div>
+      <div class="result-label">SKOR AKHIRMU</div>
+      <div class="result-msg" id="result-msg"></div>
+      <button class="btn-retry" onclick="startQuiz()">ULANGI QUIZ</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CALL TO ACTION
+     ============================================================ -->
+<section id="cta">
+  <div class="cta-inner">
+    <p class="cta-kicker">/ Bersama Kita Bisa — SDGs No. 3</p>
+    <h2 class="cta-title">
+      WAKTUNYA
+      <em>BERTINDAK</em>
+    </h2>
+    <p class="cta-sub">Setiap pilihan yang kita buat — dari tas belanja hingga botol minum — berdampak nyata. Mulai dari diri sendiri, sekarang.</p>
+    <div class="cta-btns">
+      <a href="#edukasi" class="btn-primary"><span>↑ BACA KEMBALI</span></a>
+      <a href="#quiz" class="btn-secondary">COBA QUIZ LAGI</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">MIKRO</div>
+  <div class="footer-note">
+    WEBSITE EDUKASI MIKROPLASTIK<br>
+    MENDUKUNG SDGs NO. 3 — GOOD HEALTH & WELL-BEING<br>
+    © 2024 — DIBUAT UNTUK GENERASI MENDATANG
+  </div>
+</footer>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+// ============================================================
+// CUSTOM CURSOR
+// ============================================================
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+(function animateCursor() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) *.12;
+  cursorRing.style.left = rx + 'px';
+  cursorRing.style.top = ry + 'px';
+  requestAnimationFrame(animateCursor);
+})();
+
+// ============================================================
+// SCROLL PROGRESS BAR
+// ============================================================
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+// ============================================================
+// IMAGE SEQUENCE (GSAP + ScrollTrigger)
+// ============================================================
+const TOTAL_FRAMES = 280;
+const BASE_URL = 'https://www.adaline.al/sequence/16x9_281/high/graded_4K_100gm85_1440_3-';
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+const images = new Array(TOTAL_FRAMES);
+let loadedCount = 0;
+let currentFrame = 0;
+
+function pad(n) { return String(n).padStart(3, '0'); }
+function getUrl(i) { return BASE_URL + pad(i) + '.jpg'; }
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  renderFrame(currentFrame);
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function renderFrame(idx) {
+  const img = images[idx];
+  if (!img || !img.complete || img.naturalWidth === 0) return;
+  const cw = canvas.width, ch = canvas.height;
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const scale = Math.max(cw / iw, ch / ih);
+  const w = iw * scale, h = ih * scale;
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+}
+
+// Preload all frames, update loader
+function preloadImages() {
+  for (let i = 1; i <= TOTAL_FRAMES; i++) {
+    const img = new Image();
+    img.src = getUrl(i);
+    img.onload = img.onerror = () => {
+      loadedCount++;
+      const pct = Math.round(loadedCount / TOTAL_FRAMES * 100);
+      document.getElementById('loader-bar').style.width = pct + '%';
+      document.getElementById('loader-pct').textContent = `MEMUAT SEQUENCE — ${pct}%`;
+      if (loadedCount === TOTAL_FRAMES) onImagesReady();
+    };
+    images[i - 1] = img;
+  }
+}
+
+function onImagesReady() {
+  // Hide loader with fade
+  gsap.to('#loader', { opacity: 0, duration: 0.8, onComplete: () => {
+    document.getElementById('loader').style.display = 'none';
+    initAnimations();
+  }});
+}
+
+preloadImages();
+
+// Fallback: if images fail to load after 8s, show page anyway
+setTimeout(() => {
+  if (document.getElementById('loader').style.display !== 'none') {
+    gsap.to('#loader', { opacity: 0, duration: 0.8, onComplete: () => {
+      document.getElementById('loader').style.display = 'none';
+      initAnimations();
+    }});
+  }
+}, 8000);
+
+// ============================================================
+// GSAP ANIMATIONS (after load)
+// ============================================================
+function initAnimations() {
+  gsap.registerPlugin(ScrollTrigger);
+
+  // --- IMAGE SEQUENCE SCROLL ---
+  // Scroll from frame 280 to frame 1 (zoom out effect)
+  const seqObj = { frame: TOTAL_FRAMES - 1 };
+  gsap.to(seqObj, {
+    frame: 0,
+    snap: 'frame',
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '#hero',
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 0.5,
+    },
+    onUpdate() {
+      currentFrame = Math.round(seqObj.frame);
+      renderFrame(currentFrame);
+    }
+  });
+
+  // --- HERO TEXT ENTRANCE ---
+  gsap.fromTo('.hero-kicker', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1, delay: 0.3 });
+  gsap.fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.2, delay: 0.5 });
+  gsap.fromTo('.hero-sub', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1, delay: 0.8 });
+  gsap.fromTo('.btn-primary', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, delay: 1.0 });
+
+  // --- WORD REVEAL (edu section title) ---
+  gsap.utils.toArray('.word-inner').forEach((el, i) => {
+    gsap.to(el, {
+      y: 0,
+      duration: 0.9,
+      ease: 'power4.out',
+      delay: i * 0.12,
+      scrollTrigger: {
+        trigger: '#reveal-title',
+        start: 'top 80%',
+      }
+    });
+  });
+
+  // --- EDU CARDS SLIDE IN ---
+  gsap.utils.toArray('.edu-card').forEach((card, i) => {
+    gsap.to(card, {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      delay: i * 0.15,
+      scrollTrigger: { trigger: card, start: 'top 85%' }
+    });
+  });
+
+  // --- STATS COUNTER ---
+  gsap.utils.toArray('.stat-num').forEach(el => {
+    const target = +el.dataset.target;
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 85%',
+      once: true,
+      onEnter() {
+        gsap.to({ val: 0 }, {
+          val: target,
+          duration: 1.5,
+          ease: 'power2.out',
+          onUpdate() { el.textContent = Math.round(this.targets()[0].val); }
+        });
+      }
+    });
+  });
+
+  // --- PARALLAX BG ---
+  gsap.to('#parallax-bg', {
+    yPercent: -30,
+    ease: 'none',
+    scrollTrigger: { trigger: '#parallax-section', scrub: 1, start: 'top bottom', end: 'bottom top' }
+  });
+  gsap.to('#parallax-grid', {
+    yPercent: -15,
+    ease: 'none',
+    scrollTrigger: { trigger: '#parallax-section', scrub: 1.5, start: 'top bottom', end: 'bottom top' }
+  });
+
+  // --- FACT CARDS ---
+  gsap.utils.toArray('.fact-card').forEach((card, i) => {
+    gsap.to(card, {
+      opacity: 1, x: 0, y: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      delay: i * 0.18,
+      scrollTrigger: { trigger: card, start: 'top 85%' }
+    });
+  });
+
+  // --- CTA REVEAL ---
+  gsap.fromTo('.cta-title', { opacity: 0, y: 60 }, {
+    opacity: 1, y: 0, duration: 1.2, ease: 'power4.out',
+    scrollTrigger: { trigger: '#cta', start: 'top 70%' }
+  });
+}
+
+// ============================================================
+// 3D FLOATING MICROPLASTIC PARTICLES
+// ============================================================
+const pc = document.getElementById('particle-canvas');
+const pctx = pc.getContext('2d');
+pc.width = window.innerWidth;
+pc.height = window.innerHeight;
+window.addEventListener('resize', () => {
+  pc.width = window.innerWidth;
+  pc.height = window.innerHeight;
+});
+
+const PARTICLE_COUNT = 60;
+const particles = [];
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * pc.width;
+    this.y = Math.random() * pc.height;
+    this.z = Math.random() * 800 + 100;
+    this.r = (Math.random() * 3 + 1) * (800 / this.z);
+    this.vx = (Math.random() - 0.5) * 0.4;
+    this.vy = (Math.random() - 0.5) * 0.2 - 0.1;
+    this.alpha = Math.random() * 0.5 + 0.1;
+    this.color = Math.random() > 0.5 ? '0,180,216' : '0,255,204';
+    this.shape = Math.floor(Math.random() * 3); // 0=circle, 1=rect, 2=triangle
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.02;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.rotation += this.rotSpeed;
+    if (this.y < -20 || this.x < -20 || this.x > pc.width + 20) this.reset();
+  }
+  draw() {
+    pctx.save();
+    pctx.globalAlpha = this.alpha * (1 - this.z / 1000);
+    pctx.translate(this.x, this.y);
+    pctx.rotate(this.rotation);
+    pctx.strokeStyle = `rgba(${this.color},0.8)`;
+    pctx.lineWidth = 0.5;
+    pctx.fillStyle = `rgba(${this.color},0.1)`;
+    const s = this.r;
+    if (this.shape === 0) {
+      pctx.beginPath();
+      pctx.arc(0, 0, s, 0, Math.PI * 2);
+      pctx.fill(); pctx.stroke();
+    } else if (this.shape === 1) {
+      pctx.fillRect(-s, -s * 0.5, s * 2, s);
+      pctx.strokeRect(-s, -s * 0.5, s * 2, s);
+    } else {
+      pctx.beginPath();
+      pctx.moveTo(0, -s); pctx.lineTo(s, s); pctx.lineTo(-s, s); pctx.closePath();
+      pctx.fill(); pctx.stroke();
+    }
+    pctx.restore();
+  }
+}
+
+for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+
+(function animateParticles() {
+  pctx.clearRect(0, 0, pc.width, pc.height);
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animateParticles);
+})();
+
+// ============================================================
+// QUIZ
+// ============================================================
+const quizData = [
+  {
+    q: 'Apa yang dimaksud dengan mikroplastik?',
+    opts: [
+      'Plastik berukuran besar yang terlihat di laut',
+      'Partikel plastik berdiameter kurang dari 5 milimeter',
+      'Plastik yang mudah terurai secara alami',
+      'Jenis plastik ramah lingkungan'
+    ],
+    correct: 1,
+    feedback: 'Benar! Mikroplastik adalah partikel plastik berdiameter < 5mm, ada yang primer (langsung dibuat kecil) dan sekunder (pecahan plastik besar).'
+  },
+  {
+    q: 'Dari mana asal utama mikroplastik di lingkungan?',
+    opts: [
+      'Hanya dari sampah laut kapal nelayan',
+      'Tekstil sintetis, ban kendaraan, kemasan plastik, dan kosmetik',
+      'Seluruhnya dari pabrik kimia',
+      'Hanya dari microbeads sabun wajah'
+    ],
+    correct: 1,
+    feedback: 'Tepat! Sumber mikroplastik sangat beragam — mulai dari cucian pakaian sintetis, gesekan ban, hingga degradasi kemasan plastik.'
+  },
+  {
+    q: 'Berapa gram plastik rata-rata dikonsumsi manusia setiap minggu?',
+    opts: ['0.5 gram', '2 gram', '5 gram', '10 gram'],
+    correct: 2,
+    feedback: 'Benar! Sekitar 5 gram per minggu — setara ukuran kartu kredit. Ini berasal dari air, makanan, dan bahkan udara.'
+  },
+  {
+    q: 'SDG nomor berapa yang berkaitan langsung dengan dampak mikroplastik terhadap manusia?',
+    opts: ['SDG 6 (Air Bersih)', 'SDG 14 (Kehidupan Bawah Laut)', 'SDG 3 (Kesehatan & Kesejahteraan)', 'SDG 12 (Konsumsi Bertanggung Jawab)'],
+    correct: 2,
+    feedback: 'Tepat! SDG 3 (Good Health & Well-being) paling relevan karena mikroplastik berdampak langsung pada kesehatan tubuh manusia.'
+  },
+  {
+    q: 'Apa dampak mikroplastik yang ditemukan dalam tubuh manusia?',
+    opts: [
+      'Tidak ada dampak karena jumlahnya terlalu kecil',
+      'Hanya merusak gigi',
+      'Gangguan hormon, inflamasi, dan potensi risiko kanker',
+      'Meningkatkan imunitas tubuh'
+    ],
+    correct: 2,
+    feedback: 'Benar! Mikroplastik dapat membawa zat kimia berbahaya, memicu inflamasi, mengganggu sistem hormon, dan berpotensi meningkatkan risiko kanker.'
+  }
+];
+
+let currentQ = 0, score = 0, answered = false;
+
+function startQuiz() {
+  currentQ = 0; score = 0; answered = false;
+  document.getElementById('quiz-card').style.display = 'block';
+  document.getElementById('quiz-result').style.display = 'none';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const d = quizData[currentQ];
+  answered = false;
+  document.getElementById('q-num').textContent = `PERTANYAAN ${String(currentQ + 1).padStart(2, '0')}`;
+  document.getElementById('q-text').textContent = d.q;
+  document.getElementById('q-feedback').style.display = 'none';
+  document.getElementById('q-feedback').className = 'feedback-msg';
+  document.getElementById('btn-next').className = 'btn-next';
+
+  const prog = (currentQ / quizData.length) * 100;
+  document.getElementById('q-progress').style.width = prog + '%';
+  document.getElementById('q-pct').textContent = `${currentQ + 1} / ${quizData.length}`;
+
+  const opts = document.getElementById('q-options');
+  opts.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  d.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => selectAnswer(i);
+    opts.appendChild(btn);
+  });
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const d = quizData[currentQ];
+  const buttons = document.querySelectorAll('.opt');
+  const fb = document.getElementById('q-feedback');
+  buttons.forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === d.correct) btn.classList.add('correct');
+    else if (i === idx && i !== d.correct) btn.classList.add('wrong');
+  });
+  if (idx === d.correct) {
+    score++;
+    fb.className = 'feedback-msg correct';
+    fb.textContent = '✓ ' + d.feedback;
+  } else {
+    fb.className = 'feedback-msg wrong';
+    fb.textContent = '✗ Kurang tepat. ' + d.feedback;
+  }
+  fb.style.display = 'block';
+  document.getElementById('btn-next').className = 'btn-next show';
+}
+
+document.getElementById('btn-next').onclick = () => {
+  currentQ++;
+  if (currentQ < quizData.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById('quiz-card').style.display = 'none';
+  const res = document.getElementById('quiz-result');
+  res.style.display = 'block';
+  document.getElementById('result-score').textContent = `${score}/${quizData.length}`;
+  document.getElementById('q-progress').style.width = '100%';
+  document.getElementById('q-pct').textContent = 'SELESAI!';
+  let msg = '';
+  if (score === quizData.length) msg = 'Luar biasa! Kamu memahami bahaya mikroplastik dengan sangat baik. Jadilah agen perubahan!';
+  else if (score >= 3) msg = 'Bagus! Kamu sudah punya pemahaman yang cukup solid. Terus pelajari dan sebarkan informasi ini.';
+  else msg = 'Masih ada yang perlu dipelajari. Coba baca kembali materi edukasi di atas, lalu ulangi quiz ini!';
+  document.getElementById('result-msg').textContent = msg;
+  gsap.fromTo('#quiz-result', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 });
+}
+
+startQuiz();
+</script>
+</body>
+</html>
